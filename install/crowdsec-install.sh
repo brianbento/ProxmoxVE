@@ -106,6 +106,19 @@ else
   echo "   4. Restart CrowdSec: systemctl restart crowdsec"
 fi
 
+# Configure UniFi Syslog Listener
+msg_info "Configuring UniFi Syslog Listener"
+cat <<EOF >/etc/crowdsec/acquis.d/unifi-syslog.yaml
+# UniFi Syslog Listener
+# Listens for syslog messages from UniFi devices
+source: syslog
+listen_addr: 0.0.0.0
+listen_port: 4242
+labels:
+ type: unifi
+EOF
+msg_ok "Configured UniFi Syslog Listener on port 4242"
+
 # Get installed version for update checks
 msg_info "Recording CrowdSec Version Information"
 RELEASE=$(cscli version | head -n1 | awk '{print $3}' | sed 's/^v//')
@@ -230,27 +243,34 @@ if [[ $install_unifi =~ ^[Yy]$ ]]; then
     skip_tls_verify="false"
   fi
   
-  # Create configuration with generated API key
-  cat <<EOF >/opt/cs-unifi-bouncer/config.yaml
-# UniFi Bouncer Configuration
+  # Create environment configuration with generated API key
+  cat <<EOF >/opt/cs-unifi-bouncer/.env
+# UniFi Bouncer Environment Configuration
 # CrowdSec configuration is auto-configured
 
 # CrowdSec Configuration (Auto-configured)
-crowdsec_lapi_url: "http://localhost:8080"
-crowdsec_lapi_key: "${API_KEY}"
+CROWDSEC_URL=http://localhost:8080
+CROWDSEC_BOUNCER_API_KEY=${API_KEY}
 
 # UniFi Controller Configuration
-unifi_url: "${unifi_url}"
-unifi_api_key: "${unifi_api_key}"
-unifi_site_id: "default"
-skip_tls_verify: ${skip_tls_verify}
+UNIFI_HOST=${unifi_url}
+UNIFI_API_KEY=${unifi_api_key}
+UNIFI_SITE=default
+UNIFI_SKIP_TLS_VERIFY=${skip_tls_verify}
 
 # Bouncer Settings
-update_frequency: "10s"
-log_level: "info"
+CROWDSEC_UPDATE_INTERVAL=10s
+LOG_LEVEL=1
+UNIFI_IPV6=true
+UNIFI_MAX_GROUP_SIZE=10000
+UNIFI_IPV4_START_RULE_INDEX=22000
+UNIFI_IPV6_START_RULE_INDEX=27000
+UNIFI_LOGGING=false
+UNIFI_ZONE_SRC=External
+UNIFI_ZONE_DST=External Internal Vpn Hotspot
 EOF
-  chown unifi-bouncer:unifi-bouncer /opt/cs-unifi-bouncer/config.yaml
-  chmod 600 /opt/cs-unifi-bouncer/config.yaml
+  chown unifi-bouncer:unifi-bouncer /opt/cs-unifi-bouncer/.env
+  chmod 600 /opt/cs-unifi-bouncer/.env
   msg_ok "Auto-configured UniFi Bouncer with CrowdSec API key"
 
   # Creating UniFi Bouncer Service
@@ -272,7 +292,8 @@ Wants=crowdsec.service
 Type=simple
 User=unifi-bouncer
 Group=unifi-bouncer
-ExecStart=/opt/cs-unifi-bouncer/unifi-bouncer -c /opt/cs-unifi-bouncer/config.yaml
+EnvironmentFile=/opt/cs-unifi-bouncer/.env
+ExecStart=/opt/cs-unifi-bouncer/unifi-bouncer
 Restart=always
 RestartSec=5
 StandardOutput=journal
@@ -341,6 +362,10 @@ fi
   echo "- fulljackz/proxmox: Proxmox VE specific protection"
   echo "- crowdsecurity/whitelists: Whitelists parser"
   echo ""
+  echo "UniFi Syslog Listener:"
+  echo "- Listening on port 4242 for UniFi device logs"
+  echo "- Configure UniFi devices to send logs to this CrowdSec instance"
+  echo ""
   echo "CrowdSec Configuration files:"
   echo "- Main config: /etc/crowdsec/config.yaml"
   echo "- Collections: /etc/crowdsec/collections/"
@@ -398,10 +423,10 @@ fi
       echo "⚠ UniFi Controller: CONFIGURATION REQUIRED"
       echo ""
       echo "NEXT STEPS:"
-      echo "1. Edit /opt/cs-unifi-bouncer/config.yaml"
-      echo "   - Set unifi_url (your UniFi controller URL)"
-      echo "   - Set unifi_api_key (your UniFi API key)"
-      echo "   - Adjust skip_tls_verify if needed"
+      echo "1. Edit /opt/cs-unifi-bouncer/.env"
+      echo "   - Set UNIFI_HOST (your UniFi controller URL)"
+      echo "   - Set UNIFI_API_KEY (your UniFi API key)"
+      echo "   - Adjust UNIFI_SKIP_TLS_VERIFY if needed"
       echo ""
       echo "2. Start the service:"
       echo "   - systemctl start unifi-bouncer"
@@ -414,7 +439,7 @@ fi
     echo "- systemctl restart unifi-bouncer: Restart bouncer"
     echo ""
     echo "UniFi Bouncer Files:"
-    echo "- Configuration: /opt/cs-unifi-bouncer/config.yaml"
+    echo "- Environment Config: /opt/cs-unifi-bouncer/.env"
     echo "- Binary: /opt/cs-unifi-bouncer/unifi-bouncer"
     echo "- Service: /etc/systemd/system/unifi-bouncer.service"
     echo ""
