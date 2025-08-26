@@ -146,9 +146,10 @@ if [[ ! $enable_host_logs =~ ^[Nn]$ ]]; then
   
   # Add bind mounts for host log monitoring
   pct set "$CTID" -mp0 /var/log,mp=/host/var/log,ro=1
-  pct set "$CTID" -mp1 /var/log/auth.log,mp=/host/auth.log,ro=1  
-  pct set "$CTID" -mp2 /var/log/syslog,mp=/host/syslog,ro=1
-  pct set "$CTID" -mp3 /var/log/pve,mp=/host/pve,ro=1
+  # Only mount /var/log/pve if it exists (Proxmox-specific logs)
+  if [[ -d /var/log/pve ]]; then
+    pct set "$CTID" -mp1 /var/log/pve,mp=/host/pve,ro=1
+  fi
   
   msg_ok "Configured Host Log Monitoring"
   echo ""
@@ -176,8 +177,8 @@ if [[ "$HOST_MONITORING_ENABLED" == "true" ]]; then
   echo -e "${TAB}${GATEWAY}${BGN}Monitoring Proxmox host logs automatically${CL}"
 else
   echo -e "${INFO}${YW} Host Log Monitoring: ⚠️ DISABLED${CL}"
-  echo -e "${TAB}${GATEWAY}${BGN}pct set $CTID -mp0 /var/log,mp=/host/var/log,ro=1${CL} - Enable host monitoring"
-  echo -e "${TAB}${GATEWAY}${BGN}systemctl restart crowdsec${CL} - Apply host log config"
+  echo -e "${TAB}${GATEWAY}${BGN}pct stop $CTID && pct set $CTID -mp0 /var/log,mp=/host/var/log,ro=1${CL}"
+  echo -e "${TAB}${GATEWAY}${BGN}pct start $CTID && systemctl restart crowdsec${CL} - Enable host monitoring"
 fi
 echo -e "${INFO}${YW} UniFi Bouncer (if installed - interactive setup):${CL}"
 echo -e "${TAB}${GATEWAY}${BGN}systemctl status unifi-bouncer${CL} - Check bouncer status"
