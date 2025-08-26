@@ -48,11 +48,34 @@ cd cs-unifi-bouncer || exit
 
 # Get latest release version
 RELEASE=$(curl -fsSL https://api.github.com/repos/teifun2/cs-unifi-bouncer/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4)}')
-$STD git checkout "v${RELEASE}"
+
+# Fallback to main branch if no release found
+if [[ -z "$RELEASE" ]]; then
+  echo "No release found, using main branch"
+  RELEASE="main"
+  $STD git checkout main
+else
+  echo "Found release: v${RELEASE}"
+  # Try to checkout the release, fallback to main if it fails
+  if ! git checkout "v${RELEASE}" 2>/dev/null; then
+    echo "Release v${RELEASE} not found, falling back to main branch"
+    RELEASE="main"
+    $STD git checkout main
+  fi
+fi
 
 # Build with version info (same as workflow)
-export GOFLAGS="-ldflags=-X=main.version=${RELEASE}"
-$STD /usr/local/go/bin/go build -o unifi-bouncer
+if [[ "$RELEASE" != "main" ]]; then
+  export GOFLAGS="-ldflags=-X=main.version=${RELEASE}"
+else
+  export GOFLAGS="-ldflags=-X=main.version=development"
+fi
+
+# Build the application
+if ! /usr/local/go/bin/go build -o unifi-bouncer; then
+  msg_error "Failed to build UniFi Bouncer"
+  exit 1
+fi
 
 # Set permissions
 chown -R unifi-bouncer:unifi-bouncer /opt/cs-unifi-bouncer
@@ -121,14 +144,22 @@ msg_ok "Created Service"
 
 # Recording Version Information
 msg_info "Recording Version Information"
-echo "${RELEASE}" >/opt/UniFi-Bouncer_version.txt
+if [[ "$RELEASE" == "main" ]]; then
+  echo "development" >/opt/UniFi-Bouncer_version.txt
+else
+  echo "${RELEASE}" >/opt/UniFi-Bouncer_version.txt
+fi
 msg_ok "Version Information Recorded"
 
 # Create setup information
 {
   echo "UniFi Bouncer for CrowdSec Installation Complete"
   echo "================================================"
-  echo "Version: $RELEASE"
+  if [[ "$RELEASE" == "main" ]]; then
+    echo "Version: development (main branch)"
+  else
+    echo "Version: $RELEASE"
+  fi
   echo ""
   echo "IMPORTANT: Configuration Required!"
   echo ""
