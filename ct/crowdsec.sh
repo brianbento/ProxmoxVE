@@ -166,7 +166,7 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
-echo -e "${INFO}${YW} CrowdSec Commands (with security collections pre-installed):${CL}"
+echo -e "${INFO}${YW} CrowdSec Commands (with security + Proxmox collections pre-installed):${CL}"
 echo -e "${TAB}${GATEWAY}${BGN}cscli metrics${CL} - View CrowdSec metrics"
 echo -e "${TAB}${GATEWAY}${BGN}cscli decisions list${CL} - View active decisions"
 echo -e "${TAB}${GATEWAY}${BGN}cscli collections list${CL} - View installed collections"

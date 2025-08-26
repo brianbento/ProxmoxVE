@@ -52,41 +52,25 @@ $STD cscli collections install crowdsecurity/linux
 $STD cscli collections install crowdsecurity/appsec-crs
 $STD cscli collections install crowdsecurity/appsec-generic-rules
 $STD cscli collections install crowdsecurity/appsec-virtual-patching
+$STD cscli collections install fulljackz/proxmox
 $STD cscli parsers install crowdsecurity/whitelists
 systemctl reload crowdsec
 msg_ok "Installed CrowdSec Collections"
 
 # Configure Host Log Monitoring
 msg_info "Configuring Host Log Monitoring"
-if [[ -d /host/var/log ]] || [[ -f /host/auth.log ]]; then
+if [[ -d /host/var/log ]]; then
   # Create custom acquisition config for host logs
   cat <<EOF >/etc/crowdsec/acquis.d/host-logs.yaml
 # Proxmox Host Log Monitoring
 ---
 # Host authentication logs (SSH, sudo, etc.)
-source: /host/auth.log
-labels:
-  type: syslog
-  source: "proxmox-host"
----
-# Host system logs
-source: /host/syslog
-labels:
-  type: syslog
-  source: "proxmox-host"
----
-# Proxmox VE logs (if available)
-source: /host/pve/*.log
-labels:
-  type: syslog
-  source: "proxmox-pve"
----
-# Host general logs (if full /var/log is mounted)
 source: /host/var/log/auth.log
 labels:
   type: syslog
   source: "proxmox-host"
 ---
+# Host system logs
 source: /host/var/log/syslog
 labels:
   type: syslog
@@ -97,6 +81,12 @@ source: /host/var/log/kern.log
 labels:
   type: syslog
   source: "proxmox-host"
+---
+# Proxmox VE logs (if available)
+source: /host/pve/*.log
+labels:
+  type: syslog
+  source: "proxmox-pve"
 EOF
 
   # Restart CrowdSec to apply new acquisition config
@@ -348,6 +338,7 @@ fi
   echo "- crowdsecurity/appsec-crs: AppSec Core Rule Set"
   echo "- crowdsecurity/appsec-generic-rules: AppSec generic rules"
   echo "- crowdsecurity/appsec-virtual-patching: AppSec virtual patching"
+  echo "- fulljackz/proxmox: Proxmox VE specific protection"
   echo "- crowdsecurity/whitelists: Whitelists parser"
   echo ""
   echo "CrowdSec Configuration files:"
@@ -359,12 +350,12 @@ fi
   echo "- CrowdSec: /var/log/crowdsec.log"
   
   # Add host log monitoring info if configured
-  if [[ -d /host/var/log ]] || [[ -f /host/auth.log ]]; then
+  if [[ -d /host/var/log ]]; then
     echo ""
     echo "Host Log Monitoring: ✅ ENABLED"
     echo "- Monitoring Proxmox host logs for security events"
-    echo "- Host authentication logs: /host/auth.log"
-    echo "- Host system logs: /host/syslog"
+    echo "- Host authentication logs: /host/var/log/auth.log"
+    echo "- Host system logs: /host/var/log/syslog"
     echo "- Host kernel logs: /host/var/log/kern.log"
     echo "- Proxmox VE logs: /host/pve/*.log"
     echo "- Configuration: /etc/crowdsec/acquis.d/host-logs.yaml"
@@ -373,7 +364,9 @@ fi
     echo "Host Log Monitoring: ⚠️ NOT CONFIGURED"
     echo "To enable monitoring of Proxmox host logs:"
     echo "1. Stop container: pct stop <container-id>"
-    echo "2. Add bind mount: pct set <container-id> -mp0 /var/log,mp=/host/var/log,ro=1"
+    echo "2. Add bind mounts:"
+    echo "   - pct set <container-id> -mp0 /var/log,mp=/host/var/log,ro=1"
+    echo "   - pct set <container-id> -mp1 /var/log/pve,mp=/host/pve,ro=1 (if exists)"
     echo "3. Start container: pct start <container-id>"
     echo "4. Restart CrowdSec: systemctl restart crowdsec"
   fi
