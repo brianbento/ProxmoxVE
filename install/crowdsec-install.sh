@@ -53,6 +53,7 @@ $STD cscli collections install crowdsecurity/appsec-crs
 $STD cscli collections install crowdsecurity/appsec-generic-rules
 $STD cscli collections install crowdsecurity/appsec-virtual-patching
 $STD cscli parsers install crowdsecurity/whitelists
+systemctl reload crowdsec
 msg_ok "Installed CrowdSec Collections"
 
 # Configure Host Log Monitoring
@@ -118,6 +119,10 @@ fi
 # Get installed version for update checks
 msg_info "Recording CrowdSec Version Information"
 RELEASE=$(cscli version | head -n1 | awk '{print $3}' | sed 's/^v//')
+
+# Remove existing version file if it exists
+[[ -f /opt/CrowdSec_version.txt ]] && rm -f /opt/CrowdSec_version.txt
+
 echo "${RELEASE}" >/opt/CrowdSec_version.txt
 msg_ok "CrowdSec Version Information Recorded"
 
@@ -128,21 +133,41 @@ if [[ $install_unifi =~ ^[Yy]$ ]]; then
   # Installing Go for UniFi Bouncer
   msg_info "Installing Go"
   GO_VERSION="1.21.5"
+  
+  # Check if Go is already installed
+  if [[ -d "/usr/local/go" ]]; then
+    rm -rf /usr/local/go
+  fi
+  
   $STD wget -O go${GO_VERSION}.linux-amd64.tar.gz "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz"
   $STD tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
   rm go${GO_VERSION}.linux-amd64.tar.gz
-  echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile
+  
+  # Add Go to PATH if not already present
+  if ! grep -q '/usr/local/go/bin' /etc/profile; then
+    echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile
+  fi
   export PATH=$PATH:/usr/local/go/bin
   msg_ok "Installed Go v${GO_VERSION}"
 
   # Creating System User for UniFi Bouncer
   msg_info "Creating UniFi Bouncer System User"
-  useradd --system --home-dir /opt/cs-unifi-bouncer --create-home --shell /bin/false unifi-bouncer
-  msg_ok "Created UniFi Bouncer System User"
+  if ! id "unifi-bouncer" &>/dev/null; then
+    useradd --system --home-dir /opt/cs-unifi-bouncer --create-home --shell /bin/false unifi-bouncer
+    msg_ok "Created UniFi Bouncer System User"
+  else
+    msg_ok "UniFi Bouncer System User Already Exists"
+  fi
 
   # Cloning and Building UniFi Bouncer
   msg_info "Setting up UniFi Bouncer"
   cd /opt || exit
+  
+  # Remove existing directory if it exists
+  if [[ -d "cs-unifi-bouncer" ]]; then
+    rm -rf cs-unifi-bouncer
+  fi
+  
   $STD git clone https://github.com/teifun2/cs-unifi-bouncer.git
   cd cs-unifi-bouncer || exit
 
@@ -240,6 +265,12 @@ EOF
 
   # Creating UniFi Bouncer Service
   msg_info "Creating UniFi Bouncer Service"
+  
+  # Stop existing service if running
+  if systemctl is-active --quiet unifi-bouncer; then
+    systemctl stop unifi-bouncer
+  fi
+  
   cat <<EOF >/etc/systemd/system/unifi-bouncer.service
 [Unit]
 Description=UniFi Bouncer for CrowdSec
@@ -280,6 +311,10 @@ EOF
 
   # Recording UniFi Bouncer Version Information
   msg_info "Recording UniFi Bouncer Version Information"
+  
+  # Remove existing version file if it exists
+  [[ -f /opt/UniFi-Bouncer_version.txt ]] && rm -f /opt/UniFi-Bouncer_version.txt
+  
   if [[ "$UNIFI_RELEASE" == "main" ]]; then
     echo "development" >/opt/UniFi-Bouncer_version.txt
   else
