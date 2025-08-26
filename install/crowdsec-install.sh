@@ -53,7 +53,6 @@ $STD cscli collections install crowdsecurity/appsec-crs
 $STD cscli collections install crowdsecurity/appsec-generic-rules
 $STD cscli collections install crowdsecurity/appsec-virtual-patching
 $STD cscli parsers install crowdsecurity/whitelists
-systemctl reload crowdsec
 msg_ok "Installed CrowdSec Collections"
 
 # Configure Host Log Monitoring
