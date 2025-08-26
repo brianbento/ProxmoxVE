@@ -74,7 +74,7 @@ function update_script() {
       msg_ok "Stopped UniFi Bouncer"
 
       msg_info "Creating UniFi Bouncer Backup"
-      tar -czf "/opt/UniFi-Bouncer_backup_$(date +%F).tar.gz" /opt/cs-unifi-bouncer/config.yaml /opt/cs-unifi-bouncer/unifi-bouncer
+      tar -czf "/opt/UniFi-Bouncer_backup_$(date +%F).tar.gz" /opt/cs-unifi-bouncer/.env /opt/cs-unifi-bouncer/unifi-bouncer
       msg_ok "Backup Created"
 
       msg_info "Updating UniFi Bouncer to v${UNIFI_RELEASE}"
@@ -183,4 +183,4 @@ fi
 echo -e "${INFO}${YW} UniFi Bouncer (if installed - interactive setup):${CL}"
 echo -e "${TAB}${GATEWAY}${BGN}systemctl status unifi-bouncer${CL} - Check bouncer status"
 echo -e "${TAB}${GATEWAY}${BGN}journalctl -u unifi-bouncer -f${CL} - View bouncer logs"
-echo -e "${TAB}${GATEWAY}${BGN}nano /opt/cs-unifi-bouncer/config.yaml${CL} - Edit configuration"
+echo -e "${TAB}${GATEWAY}${BGN}nano /opt/cs-unifi-bouncer/.env${CL} - Edit configuration"
