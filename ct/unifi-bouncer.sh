@@ -15,7 +15,18 @@ var_os="${var_os:-debian}"
 var_version="${var_version:-12}"
 var_unprivileged="${var_unprivileged:-1}"
 
-header_info "$APP"
+function header_info() {
+  echo -e "${BL}
+ _   _       _ ______ _   ____                                  
+| | | |     (_)  ____(_) |  _ \                                 
+| | | |_ __  _| |__   _  | |_) | ___  _   _ _ __   ___ ___ _ __  
+| | | | '_ \| |  __| | | |  _ < / _ \| | | | '_ \ / __/ _ \ '__| 
+| |_| | | | | | |    | | | |_) | (_) | |_| | | | | (_|  __/ |    
+ \___/|_| |_|_|_|    |_| |____/ \___/ \__,_|_| |_|\___\___|_|    
+${CL}"
+}
+
+header_info
 variables
 color
 catch_errors
@@ -33,6 +44,12 @@ function update_script() {
 
   # Check for new version using GitHub API
   RELEASE=$(curl -fsSL https://api.github.com/repos/teifun2/cs-unifi-bouncer/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4)}')
+  
+  # Fallback to main if no release found
+  if [[ -z "$RELEASE" ]]; then
+    RELEASE="main"
+  fi
+  
   if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
     # Stopping UniFi Bouncer service
     msg_info "Stopping $APP"
@@ -48,12 +65,33 @@ function update_script() {
     msg_info "Updating $APP to v${RELEASE}"
     cd /opt/cs-unifi-bouncer || exit
     $STD git fetch --tags
-    $STD git checkout "v${RELEASE}"
-    export GOFLAGS="-ldflags=-X=main.version=${RELEASE}"
+    
+    # Handle different release types
+    if [[ "$RELEASE" == "main" ]]; then
+      $STD git checkout main
+      $STD git pull origin main
+      export GOFLAGS="-ldflags=-X=main.version=development"
+    else
+      # Try to checkout the release, fallback to main if it fails
+      if ! git checkout "v${RELEASE}" 2>/dev/null; then
+        echo "Release v${RELEASE} not found, falling back to main branch"
+        RELEASE="main"
+        $STD git checkout main
+        $STD git pull origin main
+        export GOFLAGS="-ldflags=-X=main.version=development"
+      else
+        export GOFLAGS="-ldflags=-X=main.version=${RELEASE}"
+      fi
+    fi
+    
     $STD go build -o unifi-bouncer
     chown unifi-bouncer:unifi-bouncer unifi-bouncer
     chmod +x unifi-bouncer
-    msg_ok "Updated $APP to v${RELEASE}"
+    if [[ "$RELEASE" == "main" ]]; then
+      msg_ok "Updated $APP to development version"
+    else
+      msg_ok "Updated $APP to v${RELEASE}"
+    fi
 
     # Starting UniFi Bouncer service
     msg_info "Starting $APP"
@@ -66,10 +104,18 @@ function update_script() {
     msg_ok "Cleanup Completed"
 
     # Update version file
-    echo "${RELEASE}" >/opt/${APP}_version.txt
+    if [[ "$RELEASE" == "main" ]]; then
+      echo "development" >/opt/${APP}_version.txt
+    else
+      echo "${RELEASE}" >/opt/${APP}_version.txt
+    fi
     msg_ok "Update Successful"
   else
-    msg_ok "No update required. ${APP} is already at v${RELEASE}"
+    if [[ "$RELEASE" == "main" ]]; then
+      msg_ok "No update required. ${APP} is already at development version"
+    else
+      msg_ok "No update required. ${APP} is already at v${RELEASE}"
+    fi
   fi
   exit
 }
