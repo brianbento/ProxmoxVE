@@ -55,4 +55,24 @@ description
 msg_ok "Completed successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
 echo -e "${INFO}${YW} Access it using the following URL:${CL}"
-echo -e "${TAB}${GATEWAY}${BGN}http://${IP}:8080/ui/console${CL}"
+
+# Read configuration from config.yaml
+EXTERNAL_DOMAIN=$(grep "ExternalDomain:" /opt/zitadel/config.yaml | awk '{print $2}')
+EXTERNAL_PORT=$(grep "ExternalPort:" /opt/zitadel/config.yaml | awk '{print $2}')
+EXTERNAL_SECURE=$(grep "ExternalSecure:" /opt/zitadel/config.yaml | awk '{print $2}')
+
+# Determine protocol
+if [[ "$EXTERNAL_SECURE" == "true" ]]; then
+  PROTOCOL="https"
+else
+  PROTOCOL="http"
+fi
+
+# Determine if port should be shown in URL
+if [[ ("$EXTERNAL_SECURE" == "true" && "$EXTERNAL_PORT" == "443") || ("$EXTERNAL_SECURE" == "false" && "$EXTERNAL_PORT" == "80") ]]; then
+  PORT_DISPLAY=""
+else
+  PORT_DISPLAY=":${EXTERNAL_PORT}"
+fi
+
+echo -e "${TAB}${GATEWAY}${BGN}${PROTOCOL}://${EXTERNAL_DOMAIN}${PORT_DISPLAY}/ui/console${CL}"
