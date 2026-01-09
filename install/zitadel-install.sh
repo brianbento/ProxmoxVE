@@ -58,12 +58,17 @@ mkdir -p /opt/zitadel
 echo "/opt/zitadel/config.yaml" >"/opt/zitadel/.config"
 head -c 32 < <(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9') >"/opt/zitadel/.masterkey"
 
+# Set defaults for variables to avoid unbound variable errors
+: "${ZITADEL_ADMIN_FIRSTNAME:=Admin}"
+: "${ZITADEL_ADMIN_LASTNAME:=User}"
+: "${ZITADEL_ADMIN_EMAIL:=admin@${EXTERNAL_DOMAIN}}"
+
 # Generate default admin credentials
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-16)
-ADMIN_FIRSTNAME="${ZITADEL_ADMIN_FIRSTNAME:-Admin}"
-ADMIN_LASTNAME="${ZITADEL_ADMIN_LASTNAME:-User}"
-ADMIN_EMAIL="${ZITADEL_ADMIN_EMAIL:-admin@${EXTERNAL_DOMAIN}}"
+ADMIN_FIRSTNAME="${ZITADEL_ADMIN_FIRSTNAME}"
+ADMIN_LASTNAME="${ZITADEL_ADMIN_LASTNAME}"
+ADMIN_EMAIL="${ZITADEL_ADMIN_EMAIL}"
 
 {
   echo "Config location: $(cat "/opt/zitadel/.config")"
