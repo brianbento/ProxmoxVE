@@ -56,10 +56,10 @@ msg_ok "Completed successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
 echo -e "${INFO}${YW} Access it using the following URL:${CL}"
 
-# Read configuration from config.yaml
-EXTERNAL_DOMAIN=$(grep "ExternalDomain:" /opt/zitadel/config.yaml | awk '{print $2}')
-EXTERNAL_PORT=$(grep "ExternalPort:" /opt/zitadel/config.yaml | awk '{print $2}')
-EXTERNAL_SECURE=$(grep "ExternalSecure:" /opt/zitadel/config.yaml | awk '{print $2}')
+# Read configuration from config.yaml inside the container
+EXTERNAL_DOMAIN=$(pct exec "$CTID" -- grep "ExternalDomain:" /opt/zitadel/config.yaml | awk '{print $2}')
+EXTERNAL_PORT=$(pct exec "$CTID" -- grep "ExternalPort:" /opt/zitadel/config.yaml | awk '{print $2}')
+EXTERNAL_SECURE=$(pct exec "$CTID" -- grep "ExternalSecure:" /opt/zitadel/config.yaml | awk '{print $2}')
 
 # Determine protocol
 if [[ "$EXTERNAL_SECURE" == "true" ]]; then
