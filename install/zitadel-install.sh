@@ -61,6 +61,8 @@ head -c 32 < <(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9') >"/opt/zitadel/.mas
 # Generate default admin credentials
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-16)
+ADMIN_FIRSTNAME="${ZITADEL_ADMIN_FIRSTNAME:-Admin}"
+ADMIN_LASTNAME="${ZITADEL_ADMIN_LASTNAME:-User}"
 ADMIN_EMAIL="${ZITADEL_ADMIN_EMAIL:-admin@${EXTERNAL_DOMAIN}}"
 
 {
@@ -73,6 +75,8 @@ ADMIN_EMAIL="${ZITADEL_ADMIN_EMAIL:-admin@${EXTERNAL_DOMAIN}}"
   echo "External Secure (SSL): $EXTERNAL_SECURE"
   echo ""
   echo "Default Admin Credentials"
+  echo "First Name: ${ADMIN_FIRSTNAME}"
+  echo "Last Name: ${ADMIN_LASTNAME}"
   echo "Username: ${ADMIN_USERNAME}@${EXTERNAL_DOMAIN}"
   echo "Email: ${ADMIN_EMAIL}"
   echo "Password: ${ADMIN_PASSWORD}"

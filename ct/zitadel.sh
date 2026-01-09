@@ -66,8 +66,20 @@ else
   ZITADEL_SECURE="false"
 fi
 
-# Prompt for admin email
+# Prompt for admin user details
 echo ""
+read -p "Enter admin first name: " ZITADEL_ADMIN_FIRSTNAME
+while [[ -z "$ZITADEL_ADMIN_FIRSTNAME" ]]; do
+  echo "First name cannot be empty."
+  read -p "Enter admin first name: " ZITADEL_ADMIN_FIRSTNAME
+done
+
+read -p "Enter admin last name: " ZITADEL_ADMIN_LASTNAME
+while [[ -z "$ZITADEL_ADMIN_LASTNAME" ]]; do
+  echo "Last name cannot be empty."
+  read -p "Enter admin last name: " ZITADEL_ADMIN_LASTNAME
+done
+
 read -p "Enter admin email address: " ZITADEL_ADMIN_EMAIL
 while [[ ! "$ZITADEL_ADMIN_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
   echo "Invalid email format. Please try again."
@@ -78,6 +90,8 @@ done
 export ZITADEL_DOMAIN
 export ZITADEL_PORT
 export ZITADEL_SECURE
+export ZITADEL_ADMIN_FIRSTNAME
+export ZITADEL_ADMIN_LASTNAME
 export ZITADEL_ADMIN_EMAIL
 
 build_container
@@ -111,10 +125,13 @@ echo ""
 echo -e "${INFO}${YW} Default Admin Credentials:${CL}"
 
 # Read admin credentials directly from container - much simpler approach
-ADMIN_USERNAME=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 3 "Default Admin Credentials" | grep "Username:" | cut -d' ' -f2)
-ADMIN_EMAIL=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 3 "Default Admin Credentials" | grep "Email:" | cut -d' ' -f2)
-ADMIN_PASSWORD=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 3 "Default Admin Credentials" | grep "Password:" | cut -d' ' -f2)
+ADMIN_FIRSTNAME=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 5 "Default Admin Credentials" | grep "First Name:" | cut -d' ' -f3-)
+ADMIN_LASTNAME=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 5 "Default Admin Credentials" | grep "Last Name:" | cut -d' ' -f3-)
+ADMIN_USERNAME=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 5 "Default Admin Credentials" | grep "Username:" | cut -d' ' -f2)
+ADMIN_EMAIL=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 5 "Default Admin Credentials" | grep "Email:" | cut -d' ' -f2)
+ADMIN_PASSWORD=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 5 "Default Admin Credentials" | grep "Password:" | cut -d' ' -f2)
 
+echo -e "${TAB}${OS}${YW} Name: ${GN}${ADMIN_FIRSTNAME} ${ADMIN_LASTNAME}${CL}"
 echo -e "${TAB}${HOSTNAME}${YW} Username: ${GN}${ADMIN_USERNAME}${CL}"
 echo -e "${TAB}${NETWORK}${YW} Email: ${GN}${ADMIN_EMAIL}${CL}"
 echo -e "${TAB}${INFO}${YW} Password: ${GN}${ADMIN_PASSWORD}${CL}"
