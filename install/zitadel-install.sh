@@ -164,7 +164,7 @@ msg_ok "Installed Node.js"
 msg_info "Extracting and setting up Login V2 app"
 mkdir -p /usr/local/share/zitadel
 LATEST_RELEASE=$(curl -s https://api.github.com/repos/zitadel/zitadel/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
-curl -fsSL "https://github.com/zitadel/zitadel/releases/download/${LATEST_RELEASE}/zitadel-login-${LATEST_RELEASE#v}.tar.gz" -o /tmp/zitadel-login.tar.gz
+curl -fsSL "https://github.com/zitadel/zitadel/releases/download/${LATEST_RELEASE}/zitadel-login.tar.gz" -o /tmp/zitadel-login.tar.gz
 $STD tar -xzf /tmp/zitadel-login.tar.gz -C /usr/local/share/zitadel
 rm /tmp/zitadel-login.tar.gz
 chown -R zitadel:zitadel /usr/local/share/zitadel
