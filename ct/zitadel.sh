@@ -49,6 +49,28 @@ function update_script() {
 }
 
 start
+
+# Prompt for domain configuration (runs on Proxmox host, before build)
+echo ""
+read -p "Enter your external domain (or press Enter to use auto-detected IP): " ZITADEL_DOMAIN
+ZITADEL_DOMAIN=${ZITADEL_DOMAIN:-auto}
+
+read -p "Enter external port (default: 443): " ZITADEL_PORT
+ZITADEL_PORT=${ZITADEL_PORT:-443}
+
+read -p "Are you using SSL? (y/n, default: y): " USE_SSL
+USE_SSL=${USE_SSL:-y}
+if [[ "$USE_SSL" =~ ^[Yy]$ ]]; then
+  ZITADEL_SECURE="true"
+else
+  ZITADEL_SECURE="false"
+fi
+
+# Export for install script
+export ZITADEL_DOMAIN
+export ZITADEL_PORT
+export ZITADEL_SECURE
+
 build_container
 description
 

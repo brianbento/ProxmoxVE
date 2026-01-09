@@ -41,22 +41,15 @@ msg_ok "Installed PostgreSQL"
 
 fetch_and_deploy_gh_release "zitadel" "zitadel/zitadel" "prebuild" "latest" "/usr/local/bin" "zitadel-linux-amd64.tar.gz"
 
-msg_info "Domain Configuration"
-read -p "Enter your external domain (or press Enter to use the container IP): " EXTERNAL_DOMAIN
-if [[ -z "$EXTERNAL_DOMAIN" ]]; then
+msg_info "Configuring Domain Settings"
+# Use environment variables passed from CT script
+EXTERNAL_DOMAIN="${ZITADEL_DOMAIN:-auto}"
+EXTERNAL_PORT="${ZITADEL_PORT:-443}"
+EXTERNAL_SECURE="${ZITADEL_SECURE:-true}"
+
+# If domain is "auto", use container IP
+if [[ "$EXTERNAL_DOMAIN" == "auto" ]]; then
   EXTERNAL_DOMAIN=$(ip a s dev eth0 | awk '/inet / {print $2}' | cut -d/ -f1)
-  msg_info "Using container IP: $EXTERNAL_DOMAIN"
-fi
-
-read -p "Enter external port (default: 443): " EXTERNAL_PORT
-EXTERNAL_PORT=${EXTERNAL_PORT:-443}
-
-read -p "Are you using SSL? (y/n, default: y): " USE_SSL
-USE_SSL=${USE_SSL:-y}
-if [[ "$USE_SSL" =~ ^[Yy]$ ]]; then
-  EXTERNAL_SECURE="true"
-else
-  EXTERNAL_SECURE="false"
 fi
 msg_ok "Domain configured: $EXTERNAL_DOMAIN:$EXTERNAL_PORT (SSL: $EXTERNAL_SECURE)"
 
