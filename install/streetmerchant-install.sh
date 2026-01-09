@@ -134,14 +134,6 @@ msg_info "Saving Version Information"
 echo "${RELEASE}" > /opt/${APP}_version.txt
 msg_ok "Version information saved"
 
-msg_info "Cleaning Up"
-$STD apt-get -y autoremove
-$STD apt-get -y autoclean
-msg_ok "Cleaned"
-
 motd_ssh
 customize
-
-msg_info "Cleaning up"
 cleanup_lxc
-msg_ok "Cleaned"
