@@ -66,10 +66,19 @@ else
   ZITADEL_SECURE="false"
 fi
 
+# Prompt for admin email
+echo ""
+read -p "Enter admin email address: " ZITADEL_ADMIN_EMAIL
+while [[ ! "$ZITADEL_ADMIN_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
+  echo "Invalid email format. Please try again."
+  read -p "Enter admin email address: " ZITADEL_ADMIN_EMAIL
+done
+
 # Export for install script
 export ZITADEL_DOMAIN
 export ZITADEL_PORT
 export ZITADEL_SECURE
+export ZITADEL_ADMIN_EMAIL
 
 build_container
 description
@@ -101,12 +110,13 @@ echo -e "${TAB}${GATEWAY}${BGN}${PROTOCOL}://${EXTERNAL_DOMAIN}${PORT_DISPLAY}/u
 echo ""
 echo -e "${INFO}${YW} Default Admin Credentials:${CL}"
 
-# Read admin credentials from container using awk for reliable extraction
-CREDS=$(pct exec "$CTID" -- bash -c "awk '/^Default Admin Credentials$/,/^Password:/' /root/zitadel.creds")
-ADMIN_USERNAME=$(echo "$CREDS" | grep "^Username:" | awk '{print $2}')
-ADMIN_PASSWORD=$(echo "$CREDS" | grep "^Password:" | awk '{print $2}')
+# Read admin credentials directly from container - much simpler approach
+ADMIN_USERNAME=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 3 "Default Admin Credentials" | grep "Username:" | cut -d' ' -f2)
+ADMIN_EMAIL=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 3 "Default Admin Credentials" | grep "Email:" | cut -d' ' -f2)
+ADMIN_PASSWORD=$(pct exec "$CTID" -- cat /root/zitadel.creds | grep -A 3 "Default Admin Credentials" | grep "Password:" | cut -d' ' -f2)
 
 echo -e "${TAB}${HOSTNAME}${YW} Username: ${GN}${ADMIN_USERNAME}${CL}"
+echo -e "${TAB}${NETWORK}${YW} Email: ${GN}${ADMIN_EMAIL}${CL}"
 echo -e "${TAB}${INFO}${YW} Password: ${GN}${ADMIN_PASSWORD}${CL}"
 echo ""
 echo -e "${INFO}${YW} All credentials saved in container: ${BL}/root/zitadel.creds${CL}"
