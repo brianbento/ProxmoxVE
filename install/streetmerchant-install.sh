@@ -5,6 +5,9 @@
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
 # Source: https://github.com/jef/streetmerchant
 
+# App configuration
+APP="Streetmerchant"
+
 # Load functions
 source /dev/stdin <<<"$FUNCTIONS_FILE_PATH"
 color
