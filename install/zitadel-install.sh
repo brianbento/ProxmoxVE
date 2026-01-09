@@ -108,14 +108,6 @@ Database:
         RootCert: ""
         Cert: ""
         Key: ""
-FirstInstance:
-  Org:
-    Human:
-      Username: ${ADMIN_USERNAME}
-      Password: ${ADMIN_PASSWORD}
-  Features:
-    LoginV2:
-      Required: false
 EOF
 msg_ok "Installed Zitadel Enviroments"
 
