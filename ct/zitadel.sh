@@ -98,3 +98,14 @@ else
 fi
 
 echo -e "${TAB}${GATEWAY}${BGN}${PROTOCOL}://${EXTERNAL_DOMAIN}${PORT_DISPLAY}/ui/console${CL}"
+echo ""
+echo -e "${INFO}${YW} Default Admin Credentials:${CL}"
+
+# Read admin credentials from container
+ADMIN_USERNAME=$(pct exec "$CTID" -- grep "^Username:" /root/zitadel.creds | grep -A1 "Default Admin Credentials" | tail -1 | awk '{print $2}')
+ADMIN_PASSWORD=$(pct exec "$CTID" -- grep "^Password:" /root/zitadel.creds | grep -A2 "Default Admin Credentials" | tail -1 | awk '{print $2}')
+
+echo -e "${TAB}${HOSTNAME}${YW} Username: ${GN}${ADMIN_USERNAME}${CL}"
+echo -e "${TAB}${INFO}${YW} Password: ${GN}${ADMIN_PASSWORD}${CL}"
+echo ""
+echo -e "${INFO}${YW} All credentials saved in container: ${BL}/root/zitadel.creds${CL}"
