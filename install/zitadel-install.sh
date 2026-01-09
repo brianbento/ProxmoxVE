@@ -48,11 +48,11 @@ if [[ -z "$EXTERNAL_DOMAIN" ]]; then
   msg_info "Using container IP: $EXTERNAL_DOMAIN"
 fi
 
-read -p "Enter external port (default: 8080): " EXTERNAL_PORT
-EXTERNAL_PORT=${EXTERNAL_PORT:-8080}
+read -p "Enter external port (default: 443): " EXTERNAL_PORT
+EXTERNAL_PORT=${EXTERNAL_PORT:-443}
 
-read -p "Are you using SSL? (y/n, default: n): " USE_SSL
-USE_SSL=${USE_SSL:-n}
+read -p "Are you using SSL? (y/n, default: y): " USE_SSL
+USE_SSL=${USE_SSL:-y}
 if [[ "$USE_SSL" =~ ^[Yy]$ ]]; then
   EXTERNAL_SECURE="true"
 else
