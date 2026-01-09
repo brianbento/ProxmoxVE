@@ -108,6 +108,12 @@ Database:
         RootCert: ""
         Cert: ""
         Key: ""
+FirstInstance:
+  Org:
+    Human:
+      Username: ${ADMIN_USERNAME}
+      Password: ${ADMIN_PASSWORD}
+      
 EOF
 msg_ok "Installed Zitadel Enviroments"
 
