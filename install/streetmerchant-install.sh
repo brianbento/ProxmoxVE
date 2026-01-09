@@ -25,6 +25,31 @@ $STD apt-get install -y \
   gpg
 msg_ok "Installed Dependencies"
 
+msg_info "Installing Chromium and Browser Dependencies"
+$STD apt-get install -y \
+  chromium \
+  chromium-sandbox \
+  fonts-liberation \
+  libasound2 \
+  libatk-bridge2.0-0 \
+  libatk1.0-0 \
+  libatspi2.0-0 \
+  libcups2 \
+  libdbus-1-3 \
+  libdrm2 \
+  libgbm1 \
+  libgtk-3-0 \
+  libnspr4 \
+  libnss3 \
+  libwayland-client0 \
+  libxcomposite1 \
+  libxdamage1 \
+  libxfixes3 \
+  libxkbcommon0 \
+  libxrandr2 \
+  xdg-utils
+msg_ok "Installed Chromium Dependencies"
+
 msg_info "Setting up Node.js"
 NODE_VERSION="22" setup_nodejs
 msg_ok "Node.js installed"
@@ -45,6 +70,7 @@ cat > /opt/streetmerchant/.env <<'EOF'
 BROWSER_TRUSTED=true
 HEADLESS=true
 OPEN_BROWSER=false
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Notification Settings
 PAGE_TIMEOUT=30000
