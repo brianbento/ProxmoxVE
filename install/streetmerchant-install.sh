@@ -134,6 +134,20 @@ msg_info "Saving Version Information"
 echo "${RELEASE}" > /opt/${APP}_version.txt
 msg_ok "Version information saved"
 
+msg_info "Configuring Container"
 motd_ssh
+
+# Ensure auto-login is enabled
+GETTY_OVERRIDE="/etc/systemd/system/container-getty@1.service.d/override.conf"
+mkdir -p $(dirname $GETTY_OVERRIDE)
+cat <<EOF >$GETTY_OVERRIDE
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin root --noclear --keep-baud tty%I 115200,38400,9600 \$TERM
+EOF
+systemctl daemon-reload
+systemctl restart $(basename $(dirname $GETTY_OVERRIDE) | sed 's/\.d//')
+msg_ok "Configured Container"
+
 customize
 cleanup_lxc
