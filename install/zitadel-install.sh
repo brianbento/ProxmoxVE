@@ -110,15 +110,17 @@ Database:
         RootCert: ""
         Cert: ""
         Key: ""
-FirstInstance:
+DefaultInstance:
   Org:
     Human:
       Username: ${ADMIN_USERNAME}
       Password: ${ADMIN_PASSWORD}
+      FirstName: ${ADMIN_FIRSTNAME}
+      LastName: ${ADMIN_LASTNAME}
       PasswordChangeRequired: false
-      Email: ${ADMIN_EMAIL}
-      EmailVerified: true
-DefaultInstance:
+      Email:
+        Address: ${ADMIN_EMAIL}
+        Verified: true
   Features:
     LoginV2:
       Required: false
