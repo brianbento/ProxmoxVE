@@ -1,0 +1,53 @@
+{
+  "name": "Streetmerchant",
+  "slug": "streetmerchant",
+  "categories": [
+    22,
+    19
+  ],
+  "date_created": "2026-01-09",
+  "type": "ct",
+  "updateable": true,
+  "privileged": false,
+  "interface_port": 3000,
+  "documentation": "https://jef.buzz/streetmerchant",
+  "website": "https://github.com/jef/streetmerchant",
+  "logo": "https://raw.githubusercontent.com/jef/streetmerchant/main/docs/assets/images/logo.png",
+  "config_path": "/opt/streetmerchant/.env",
+  "description": "Streetmerchant is the world's easiest and most powerful stock checker bot. It continuously monitors retailer websites 24/7, looking for out-of-stock items to come back in stock. When an item becomes available, it can automatically add it to your cart and open your browser for quick checkout. With support for multiple notification platforms including Discord, Slack, Telegram, Twilio, and more, you'll never miss a restock again. Perfect for tracking hard-to-find electronics, collectibles, and high-demand items.",
+  "install_methods": [
+    {
+      "type": "default",
+      "script": "ct/streetmerchant.sh",
+      "resources": {
+        "cpu": 2,
+        "ram": 2048,
+        "hdd": 8,
+        "os": "debian",
+        "version": "12"
+      }
+    }
+  ],
+  "default_credentials": {
+    "username": null,
+    "password": null
+  },
+  "notes": [
+    {
+      "text": "Configure your desired stores and notification settings in `/opt/streetmerchant/.env`",
+      "type": "info"
+    },
+    {
+      "text": "To set up notifications, edit the .env file with your Discord webhook, Telegram bot token, or other notification service credentials",
+      "type": "info"
+    },
+    {
+      "text": "View application logs with: `journalctl -u streetmerchant -f`",
+      "type": "info"
+    },
+    {
+      "text": "The bot runs headless by default. Configure stores to monitor by editing the STORES variable in .env",
+      "type": "info"
+    }
+  ]
+}
