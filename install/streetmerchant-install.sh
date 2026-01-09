@@ -26,16 +26,16 @@ $STD apt-get install -y \
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js"
-NODE_VERSION="18" setup_nodejs
+NODE_VERSION="22" setup_nodejs
 msg_ok "Node.js installed"
 
 msg_info "Installing Streetmerchant"
-cd /opt
+cd /opt || exit
 RELEASE=$(curl -fsSL https://api.github.com/repos/jef/streetmerchant/releases/latest | \
   grep "tag_name" | awk '{print substr($2, 3, length($2)-4)}')
 
 $STD git clone --depth 1 --branch "v${RELEASE}" https://github.com/jef/streetmerchant.git
-cd streetmerchant
+cd streetmerchant || exit
 $STD npm install --production
 msg_ok "Installed Streetmerchant v${RELEASE}"
 
@@ -131,7 +131,7 @@ chmod +x /usr/bin/update-streetmerchant
 msg_ok "Update script created"
 
 msg_info "Saving Version Information"
-echo "${RELEASE}" > /opt/${APP}_version.txt
+echo "${RELEASE}" > /opt/"${APP}"_version.txt
 msg_ok "Version information saved"
 
 msg_info "Configuring Container"
@@ -139,14 +139,14 @@ motd_ssh
 
 # Ensure auto-login is enabled
 GETTY_OVERRIDE="/etc/systemd/system/container-getty@1.service.d/override.conf"
-mkdir -p $(dirname $GETTY_OVERRIDE)
-cat <<EOF >$GETTY_OVERRIDE
+mkdir -p "$(dirname "$GETTY_OVERRIDE")"
+cat <<EOF >"$GETTY_OVERRIDE"
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin root --noclear --keep-baud tty%I 115200,38400,9600 \$TERM
 EOF
 systemctl daemon-reload
-systemctl restart $(basename $(dirname $GETTY_OVERRIDE) | sed 's/\.d//')
+systemctl restart "$(basename "$(dirname "$GETTY_OVERRIDE")" | sed 's/\.d//')"
 msg_ok "Configured Container"
 
 customize

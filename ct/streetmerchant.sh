@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/build.func)
+source <(curl -fsSL https://raw.githubusercontent.com/brianbento/ProxmoxVE/main/misc/build.func)
 
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: bbento
@@ -60,7 +60,7 @@ function update_script() {
     msg_ok "Configuration backed up"
 
     msg_info "Updating ${APP} to v${RELEASE}"
-    cd /opt/streetmerchant
+    cd /opt/streetmerchant || exit
     git fetch --all
     git checkout "v${RELEASE}"
     npm install --production
