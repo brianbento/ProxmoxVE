@@ -57,11 +57,6 @@ msg_info "Setting up Zitadel Environments"
 mkdir -p /opt/zitadel
 echo "/opt/zitadel/config.yaml" >"/opt/zitadel/.config"
 head -c 32 < <(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9') >"/opt/zitadel/.masterkey"
-
-# Generate default admin password
-ADMIN_USERNAME="admin"
-ADMIN_PASSWORD=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-16)
-
 {
   echo "Config location: $(cat "/opt/zitadel/.config")"
   echo "Masterkey: $(cat "/opt/zitadel/.masterkey")"
@@ -70,10 +65,6 @@ ADMIN_PASSWORD=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | cut -c1-16)
   echo "External Domain: $EXTERNAL_DOMAIN"
   echo "External Port: $EXTERNAL_PORT"
   echo "External Secure (SSL): $EXTERNAL_SECURE"
-  echo ""
-  echo "Default Admin Credentials"
-  echo "Username: ${ADMIN_USERNAME}@${EXTERNAL_DOMAIN}"
-  echo "Password: ${ADMIN_PASSWORD}"
 } >>~/zitadel.creds
 cat <<EOF >/opt/zitadel/config.yaml
 Port: 8080
@@ -108,11 +99,7 @@ Database:
         RootCert: ""
         Cert: ""
         Key: ""
-FirstInstance:
-  Org:
-    Human:
-      Username: ${ADMIN_USERNAME}
-      Password: ${ADMIN_PASSWORD}
+DefaultInstance:
   Features:
     LoginV2:
       Required: false
